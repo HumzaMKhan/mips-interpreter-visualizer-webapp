@@ -1,0 +1,14 @@
+body {
+    background-color: rgb(157, 160, 252);
+}
+
+.column, .column2 {
+    float: left;
+    padding: 30px;
+}
+
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}

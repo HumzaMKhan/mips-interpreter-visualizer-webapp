@@ -1,0 +1,48 @@
+.underCode {
+    background-color: salmon;
+    border: none;
+    color: white;
+    padding: 18px 55px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+}
+
+.underCode:hover {
+    background-color: lightsalmon;
+}
+
+#textSegment:hover, #dataSegment:hover, #stackPointer:hover, #globalPointer:hover {
+    background-color: lightsalmon;
+}
+
+#textSegment, #dataSegment, #stackPointer, #globalPointer {
+    background-color: salmon;
+    border: none;
+    color: white;
+    padding: 1px 33px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+}
+
+button:disabled {
+  opacity: 50%;
+}
+
+.arrows:hover {
+    background-color: lightsalmon;
+}
+
+.arrows {
+    background-color: salmon;
+    border: none;
+    color: white;
+    padding: 18px 95px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+}

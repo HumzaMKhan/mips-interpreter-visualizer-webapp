@@ -1,0 +1,38 @@
+table {
+    border-collapse: collapse;
+  }
+
+table, th, td {
+border: 1px solid black;
+}
+
+caption {
+    background-color: #066509;
+    color: white;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: large;
+    font-weight: 800;
+}
+
+td {
+    text-align: center;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+th {
+    background-color: #4CAF50;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+tr {
+    background-color: rgb(225, 255, 225);
+}
+
+tr:hover {background-color: lightblue;}

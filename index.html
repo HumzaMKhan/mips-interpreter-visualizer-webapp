@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <link href="jquery-linedtextarea.css" rel="stylesheet">
+        <script src="jquery-linedtextarea.js"></script>
+
+        <link rel="stylesheet" href="index.css">
+        <link rel="stylesheet" href="buttons.css">
+        <link rel="stylesheet" href="tables.css">
+        <link rel="stylesheet" href="textareas.css">
+    </head>
+    <body>
+        <div class="clearfix">
+            <div class="column">
+                <h1 id = "codeHeader">Enter Code Here: </h1>
+                <p>Press assemble to load this code into memory. Scroll down to see the memory and labels.<br>
+                Press reset to clear memory, run to run the code, step to execute one line, or restart to go back to the beginning.</p>
+                <textarea id="code" class="lined"
+                    rows="25"
+                    cols="75"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"></textarea>
+                <button type="button" id="assemble" class="underCode">Assemble</button>
+                <button type="button" id="reset" class="underCode">Reset</button>
+                <button type="button" id="restart" class="underCode">Restart</button>
+                <button type="button" id="run" class="underCode">Run</button>
+                <button type="button" id="step" class="underCode">Step</button>
+                <br>
+                <textarea id="output" class="lined" readonly rows="13" cols="75"></textarea>
+            </div>
+            <div class="column">
+                <table id="registerTable">
+                    <caption>REGISTERS</caption>
+                    <thead>
+                        <tr>
+                            <th>Name</th><th>Number</th><th>Decimal</th><th>Hex</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registersBody"></tbody>
+                </table>
+                <div id="clear"></div>
+            </div>
+        </div>
+        <hr>
+        <div class="clearfix">
+            <div class="column2">
+                <button type="button" id="textSegment">.text</button>
+                <button type="button" id="dataSegment">.data</button>
+                <button type="button" id="stackPointer">$sp</button>
+                <button type="button" id="globalPointer">$gp</button><br>
+                <button type="button" id="previousMemory" class="arrows">&lt-</button>
+                <button type="button" id="nextMemory" class="arrows">-&gt</button>
+                <br>
+                <table id="memory">
+                    <caption>MEMORY</caption>
+                    <thead>
+                        <tr>
+                            <th>Address</th><th>Decimal</th><th>Hex</th><th>ASCII</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memoryBody"></tbody>
+                </table>
+            </div>
+            <div class="column2">
+                <table id="labels">
+                    <caption>LABELS</caption>
+                    <thead>
+                        <tr>
+                            <th>Label</th><th>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody id="labelsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <script type="module" src="processor.js"></script>
+        <script type="module" src="parser.js"></script>
+        <script type="module" src="constants.js"></script>
+        <script type="module">
+            import {updateMemoryTable, updateRegisterTable, previousMemory, nextMemory, setMemory, assemble, reset, restart, run, step} from "./processor.js";
+            import {TEXT_START_ADDRESS, DATA_START_ADDRESS} from "./constants.js";
+            reset();
+            updateMemoryTable();
+            updateRegisterTable();
+
+            document.getElementById('reset').disabled = true;
+            document.getElementById('restart').disabled = true;
+            document.getElementById('run').disabled = true;
+            document.getElementById('step').disabled = true;
+
+            document.querySelector('#assemble').addEventListener('click', function() {
+                assemble(document.getElementById('code').value);
+                document.getElementById('assemble').disabled = true;
+                document.getElementById('reset').disabled = false;
+                document.getElementById('restart').disabled = false;
+                document.getElementById('run').disabled = false;
+                document.getElementById('step').disabled = false;
+            });
+
+            document.querySelector('#reset').addEventListener('click', function() {
+                document.getElementById('output').innerHTML = '';
+                document.getElementById('assemble').disabled = false;
+                document.getElementById('reset').disabled = true;
+                document.getElementById('restart').disabled = true;
+                document.getElementById('run').disabled = true;
+                document.getElementById('step').disabled = true;
+            });
+
+            document.querySelector('#restart').addEventListener('click', restart);
+            document.querySelector('#run').addEventListener('click', run);
+            document.querySelector('#step').addEventListener('click', step);
+            document.querySelector('#previousMemory').addEventListener('click', previousMemory);
+            document.querySelector('#nextMemory').addEventListener('click', nextMemory);
+            document.querySelector('#textSegment').addEventListener('click', function(){setMemory(TEXT_START_ADDRESS);});
+            document.querySelector('#dataSegment').addEventListener('click', function(){setMemory(DATA_START_ADDRESS);});
+        </script>
+        <script>
+            $(document).ready(function(){
+                $(".lined").linedtextarea();
+            });
+        </script>
+    </body>
+</html>
