@@ -242,6 +242,8 @@ function reset() {
     hilo.fill(0);
     pc = TEXT_START_ADDRESS;
     exitAddress = TEXT_END_ADDRESS;
+    updateRegisterTable();
+    updateMemoryTable();
 
     setOutput('Reset successful!', 'Press Assemble to begin.');
 }

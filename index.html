@@ -118,8 +118,8 @@
                 flipButtons('assemble', 'reset', 'restart', 'run', 'step'); // enable buttons which need assemble to be pressed first
             });
             document.querySelector('#reset').addEventListener('click', function() {
-                document.getElementById('output').innerHTML = '';           // reset to default values
                 flipButtons('assemble', 'reset', 'restart', 'run', 'step'); // allow assemble to be pressed, but not buttons which need assemble to be pressed first
+                reset()
             });
         </script>
     </body>
