@@ -13,8 +13,6 @@
         <div class="clearfix">
             <div class="column">
                 <h1 id = "codeHeader">Enter Code Here: </h1>
-                <p>Press assemble to load this code into memory. Scroll down to see the memory and labels.<br>
-                Press reset to clear memory, run to run the code, step to execute one line, or restart to go back to the beginning.</p>
                 <textarea id="code" class="lined"
                     rows="25"
                     cols="75"
@@ -24,11 +22,13 @@
                     spellcheck="false"></textarea>
                 <button type="button" id="assemble" class="underCode">Assemble</button>
                 <button type="button" id="reset"    class="underCode">Reset</button>
-                <button type="button" id="restart"  class="underCode">Restart</button>
                 <button type="button" id="run"      class="underCode">Run</button>
                 <button type="button" id="step"     class="underCode">Step</button>
+                <button type="button" id="restart"  class="underCode">Restart</button>
                 <br>
                 <textarea id="output" class="lined" readonly rows="13" cols="75">Press Assemble to begin!</textarea>
+                <p>Press assemble to load this code into memory. Scroll down to see the memory and labels.<br>
+                    Press reset to clear memory, run to run the code, step to execute one line, or restart to go back to the beginning.</p>    
             </div>
             <div class="column">
                 <table id="registerTable">
