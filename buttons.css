@@ -28,7 +28,7 @@
     font-size: 18px;
 }
 
-button:disabled {
+button:disabled, button[disabled] {
   opacity: 50%;
 }
 

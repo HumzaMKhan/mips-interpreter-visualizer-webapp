@@ -8,7 +8,6 @@
         <link rel="stylesheet" href="index.css">
         <link rel="stylesheet" href="buttons.css">
         <link rel="stylesheet" href="tables.css">
-        <link rel="stylesheet" href="textareas.css">
     </head>
     <body>
         <div class="clearfix">
@@ -24,12 +23,12 @@
                     autocapitalize="off"
                     spellcheck="false"></textarea>
                 <button type="button" id="assemble" class="underCode">Assemble</button>
-                <button type="button" id="reset" class="underCode">Reset</button>
-                <button type="button" id="restart" class="underCode">Restart</button>
-                <button type="button" id="run" class="underCode">Run</button>
-                <button type="button" id="step" class="underCode">Step</button>
+                <button type="button" id="reset"    class="underCode">Reset</button>
+                <button type="button" id="restart"  class="underCode">Restart</button>
+                <button type="button" id="run"      class="underCode">Run</button>
+                <button type="button" id="step"     class="underCode">Step</button>
                 <br>
-                <textarea id="output" class="lined" readonly rows="13" cols="75"></textarea>
+                <textarea id="output" class="lined" readonly rows="13" cols="75">Press Assemble to begin!</textarea>
             </div>
             <div class="column">
                 <table id="registerTable">
@@ -41,7 +40,6 @@
                     </thead>
                     <tbody id="registersBody"></tbody>
                 </table>
-                <div id="clear"></div>
             </div>
         </div>
         <hr>
@@ -52,13 +50,13 @@
                 <button type="button" id="stackPointer">$sp</button>
                 <button type="button" id="globalPointer">$gp</button><br>
                 <button type="button" id="previousMemory" class="arrows">&lt-</button>
-                <button type="button" id="nextMemory" class="arrows">-&gt</button>
+                <button type="button" id="nextMemory"     class="arrows">-&gt</button>
                 <br>
                 <table id="memory">
                     <caption>MEMORY</caption>
                     <thead>
                         <tr>
-                            <th>Address</th><th>Decimal</th><th>Hex</th><th>ASCII</th>
+                            <th>Address</th><th>Decimal</th><th>Hex</th><th>UTF-16</th>
                         </tr>
                     </thead>
                     <tbody id="memoryBody"></tbody>
@@ -80,47 +78,48 @@
         <script type="module" src="processor.js"></script>
         <script type="module" src="parser.js"></script>
         <script type="module" src="constants.js"></script>
+
         <script type="module">
-            import {updateMemoryTable, updateRegisterTable, previousMemory, nextMemory, setMemory, assemble, reset, restart, run, step} from "./processor.js";
-            import {TEXT_START_ADDRESS, DATA_START_ADDRESS} from "./constants.js";
-            reset();
+            import {
+                updateMemoryTable, updateRegisterTable,
+                previousMemory, nextMemory, showAddress, showTextSegment, showDataSegment, showStack, showGlobal,
+                assemble, reset, restart, run, step
+            } from "./processor.js";
+            
+            // add line numbers to the textareas
+            $(document).ready(function(){
+                $(".lined").linedtextarea();
+            });
+            
+            // flip the disabled attribute of every button in buttons
+            function flipButtons(...buttons) {
+                for(let i = 0, buttonsLength = buttons.length; i < buttonsLength; i++) document.getElementById(buttons[i]).disabled = !document.getElementById(buttons[i]).disabled;
+            }
+            
+            // initially display memory and registers
             updateMemoryTable();
             updateRegisterTable();
 
-            document.getElementById('reset').disabled = true;
-            document.getElementById('restart').disabled = true;
-            document.getElementById('run').disabled = true;
-            document.getElementById('step').disabled = true;
-
-            document.querySelector('#assemble').addEventListener('click', function() {
-                assemble(document.getElementById('code').value);
-                document.getElementById('assemble').disabled = true;
-                document.getElementById('reset').disabled = false;
-                document.getElementById('restart').disabled = false;
-                document.getElementById('run').disabled = false;
-                document.getElementById('step').disabled = false;
-            });
-
-            document.querySelector('#reset').addEventListener('click', function() {
-                document.getElementById('output').innerHTML = '';
-                document.getElementById('assemble').disabled = false;
-                document.getElementById('reset').disabled = true;
-                document.getElementById('restart').disabled = true;
-                document.getElementById('run').disabled = true;
-                document.getElementById('step').disabled = true;
-            });
-
+            // disable buttons which need assemble to be pressed first
+            flipButtons('reset', 'restart', 'run', 'step');
+            
+            // add functionality to all of the buttons
             document.querySelector('#restart').addEventListener('click', restart);
             document.querySelector('#run').addEventListener('click', run);
             document.querySelector('#step').addEventListener('click', step);
             document.querySelector('#previousMemory').addEventListener('click', previousMemory);
             document.querySelector('#nextMemory').addEventListener('click', nextMemory);
-            document.querySelector('#textSegment').addEventListener('click', function(){setMemory(TEXT_START_ADDRESS);});
-            document.querySelector('#dataSegment').addEventListener('click', function(){setMemory(DATA_START_ADDRESS);});
-        </script>
-        <script>
-            $(document).ready(function(){
-                $(".lined").linedtextarea();
+            document.querySelector('#textSegment').addEventListener('click', showTextSegment);
+            document.querySelector('#dataSegment').addEventListener('click', showDataSegment);
+            document.querySelector('#stackPointer').addEventListener('click', showStack);
+            document.querySelector('#globalPointer').addEventListener('click', showGlobal);
+            document.querySelector('#assemble').addEventListener('click', function() {
+                assemble(document.getElementById('code').value);            // assemble the input code
+                flipButtons('assemble', 'reset', 'restart', 'run', 'step'); // enable buttons which need assemble to be pressed first
+            });
+            document.querySelector('#reset').addEventListener('click', function() {
+                document.getElementById('output').innerHTML = '';           // reset to default values
+                flipButtons('assemble', 'reset', 'restart', 'run', 'step'); // allow assemble to be pressed, but not buttons which need assemble to be pressed first
             });
         </script>
     </body>
