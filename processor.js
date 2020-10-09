@@ -15,6 +15,7 @@ let pcToLine = {};
 let preExecutionValues = {};
 let registers = new Int32Array(32).fill(0);
 let hilo = new Int32Array(2).fill(0);
+let lastpc = 0;
 let pc = TEXT_START_ADDRESS;
 let exitAddress = TEXT_END_ADDRESS;
 
@@ -244,6 +245,7 @@ function reset() {
     preExecutionValues = {};
     registers.fill(0);
     hilo.fill(0);
+    lastpc = 0;
     pc = TEXT_START_ADDRESS;
     exitAddress = TEXT_END_ADDRESS;
     updateRegisterTable();
@@ -259,7 +261,8 @@ function restart() {
     pcToLine = preExecutionValues[2];
     exitAddress = preExecutionValues[3];
     pc = preExecutionValues[4];
-    
+    lastpc = 0;
+
     registers.fill(0);
     hilo.fill(0);
     updateRegisterTable();
@@ -292,20 +295,15 @@ function step() {
 
     // highlight line number about to be executed
     if(!(pc in pcToLine)) runTimeError('This pc does not have a corresponding line.');
-    console.log(document.getElementsByClassName('codelines'));
-    let lineTag = document.getElementsByClassName('codelines')[0].namedItem('line' + pcToLine[pc]);
-    lineTag.classList.add('lineselect');
+    console.log(lastpc);
+    if(lastpc != 0) document.getElementsByClassName('lineno').namedItem('line' + pcToLine[lastpc]).classList.remove('lineselect');
+    document.getElementsByClassName('lineno').namedItem('line' + pcToLine[pc]).classList.add('lineselect');
+    lastpc = pc;
     
-    $('.codelines').on('click', '.lineno', function() {
-        $(this).toggleClass('lineselect');
-    });
 
     // run instruction
     addOutput('Running instruction at line ' + pcToLine[pc] + ' (0x' + pc.toString(16).padStart(8, '0') + ')');
     let stepReturnCode = runInstruction(memory[pc]);  // -2: breakpoint encountered, -1: runtime error, 0: execution complete, 1: no exceptions
-
-    // unhighlight line number
-    lineTag.classList.remove('lineselect');
 
     // outputs
     if(stepReturnCode == 0) addOutput('Execution complete!');
