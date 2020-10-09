@@ -1,4 +1,5 @@
-"use strict"
+"use strict";
+
 import {TEXT_START_ADDRESS, DATA_START_ADDRESS, FUNCTS, REVERSE_OPS, REVERSE_RT, TEXT_END_ADDRESS} from './constants.js';
 import {parseCode} from './parser.js';
 export {
@@ -10,6 +11,7 @@ export {
 let memoryAddress = DATA_START_ADDRESS;
 let labels = {};
 let memory = {};
+let pcToLine = {};
 let preExecutionValues = {};
 let registers = new Int32Array(32).fill(0);
 let hilo = new Int32Array(2).fill(0);
@@ -140,7 +142,7 @@ function runInstruction(instruction) {
             case 'break':   // breakpoint
                 return -2;
             case 'syscall': // call a system service based on the number in $v0, sometimes output to other registers
-                switch(register[2]) { // $v0
+                switch(registers[2]) { // $v0
                     case 10: // exit
                         return 0;
                 }
@@ -216,14 +218,15 @@ function runInstruction(instruction) {
 }
 
 function assemble(code) {
-    preExecutionValues = parseCode(code); // [labels, memory, exitAddress, startAddress]
+    preExecutionValues = parseCode(code); // [labels, memory, pcToLine, exitAddress, startAddress]
     if(preExecutionValues == -1) return; // assembly failed
     setOutput('Assembly successful!', 'Press Run to start the program, or step to advance one instruction.');
 
     labels = preExecutionValues[0];
     memory = preExecutionValues[1];
-    exitAddress = preExecutionValues[2];
-    pc = preExecutionValues[3];
+    pcToLine = preExecutionValues[2];
+    exitAddress = preExecutionValues[3];
+    pc = preExecutionValues[4];
     
     registers.fill(0);
     hilo.fill(0);
@@ -237,6 +240,7 @@ function reset() {
     memoryAddress = DATA_START_ADDRESS;
     labels = {};
     memory = {};
+    pcToLine = {};
     preExecutionValues = {};
     registers.fill(0);
     hilo.fill(0);
@@ -252,8 +256,9 @@ function restart() {
     // put values back to what they were at the start of execution
     labels = preExecutionValues[0];
     memory = preExecutionValues[1];
-    exitAddress = preExecutionValues[2];
-    pc = preExecutionValues[3];
+    pcToLine = preExecutionValues[2];
+    exitAddress = preExecutionValues[3];
+    pc = preExecutionValues[4];
     
     registers.fill(0);
     hilo.fill(0);
@@ -279,17 +284,35 @@ function run() {
 }
 
 function step() {
+    // error handling
     if(pc > exitAddress) return 0;
     if(pc % 4 != 0) return runTimeError('Bad pc value:' + '0x' + pc.toString(16).padStart(8, '0') + ', must be aligned to word boundry.');
     if(pc > TEXT_END_ADDRESS) return runTimeError('Bad pc value:' + '0x' + pc.toString(16).padStart(8, '0') + ', the pc has overrun the text segment boundry.');
     if(pc < TEXT_START_ADDRESS) return runTimeError('Bad pc value:' + '0x' + pc.toString(16).padStart(8, '0') + ', the pc has underrun the text segment boundry.');
 
-    addOutput('Running instruction at 0x' + pc.toString(16).padStart(8, '0'));
+    // highlight line number about to be executed
+    if(!(pc in pcToLine)) runTimeError('This pc does not have a corresponding line.');
+    console.log(document.getElementsByClassName('codelines'));
+    let lineTag = document.getElementsByClassName('codelines')[0].namedItem('line' + pcToLine[pc]);
+    lineTag.classList.add('lineselect');
+    
+    $('.codelines').on('click', '.lineno', function() {
+        $(this).toggleClass('lineselect');
+    });
+
+    // run instruction
+    addOutput('Running instruction at line ' + pcToLine[pc] + ' (0x' + pc.toString(16).padStart(8, '0') + ')');
     let stepReturnCode = runInstruction(memory[pc]);  // -2: breakpoint encountered, -1: runtime error, 0: execution complete, 1: no exceptions
+
+    // unhighlight line number
+    lineTag.classList.remove('lineselect');
+
+    // outputs
     if(stepReturnCode == 0) addOutput('Execution complete!');
-    pc += 4;
     updateRegisterTable();
     updateMemoryTable();
+
+    pc += 4; // move to next instruction
 
     return stepReturnCode;
 }

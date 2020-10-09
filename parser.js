@@ -1,4 +1,5 @@
 "use strict";
+
 import {TEXT_START_ADDRESS, TEXT_END_ADDRESS, DATA_START_ADDRESS, OPCODES, REGISTERS} from './constants.js';
 import {assemblyToMachine} from './instructionConversion.js'
 export {parseCode, syntaxError};
@@ -34,10 +35,11 @@ function parseCode(code) {
         startAddress = (endOfGloblLine == -1) ? labelsInstructions[0][remaining.slice(globlLocation + 6).trim()] : labelsInstructions[0][remaining.slice(globlLocation + 6, endOfGloblLine).trim()];
     }
     
-    // [labels, memory, exitAddress, startAddress]
+    // [labels, memory, pcToLine, exitAddress, startAddress]
     return [
         labelsInstructions[0],
         Object.assign({}, dataMemory, labelsInstructions[1]),
+        labelsInstructions[2],
         Math.max.apply(null, Object.keys(labelsInstructions[1])),
         startAddress
     ];
@@ -64,6 +66,7 @@ function textToInstructions(text, startingLine) {
     
     let lines = text.split('\n');       // create array of newline delimited lines
     let linesLength = lines.length;
+    let pcToLine = {};
     for(let i = 0; i < linesLength; i++) { // iterate over each line of code
         // handle non-instruction lines
         // remove comments
@@ -112,9 +115,7 @@ function textToInstructions(text, startingLine) {
         let machineCodeInstruction = assemblyToMachine(startingLine + i, i + TEXT_START_ADDRESS, fields);
         if(machineCodeInstruction == -1) return -1;
         instructions[TEXT_START_ADDRESS + (i - memoryOffset) * 4] = machineCodeInstruction;
+        pcToLine[TEXT_START_ADDRESS + (i - memoryOffset) * 4] = startingLine + i;
     }
-    
-    // dump memory information to the console
-    
-    return [labels, instructions];
+    return [labels, instructions, pcToLine];
 }
