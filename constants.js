@@ -1,3 +1,5 @@
+"use strict";
+
 export {TEXT_START_ADDRESS, TEXT_END_ADDRESS, DATA_START_ADDRESS, OPCODES, REGISTERS, FUNCTS, PSEUDO_OPS, REVERSE_OPS, REVERSE_RT};
 
 // define memory segmentation constants
