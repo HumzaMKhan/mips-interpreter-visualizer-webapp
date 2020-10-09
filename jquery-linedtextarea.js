@@ -42,9 +42,9 @@
 		var fillOutLines = function(codeLines, h, lineNo){
 			while ( (codeLines.height() - h ) <= 0 ){
 				if ( lineNo == opts.selectedLine )
-					codeLines.append("<div class='lineno lineselect'>" + lineNo + "</div>");
+					codeLines.append("<div id=line" + lineNo + " class='lineno lineselect'>" + lineNo + "</div>");
 				else
-					codeLines.append("<div class='lineno'>" + lineNo + "</div>");
+					codeLines.append("<div id=line" + lineNo + " class='lineno'>" + lineNo + "</div>");
 				
 				lineNo++;
 			}
