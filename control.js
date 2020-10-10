@@ -6,6 +6,15 @@ import {
     assemble, reset, restart, run, step
 } from './processor.js';
 
+// persist code on refresh, adapted from https://stackoverflow.com/questions/17591447/how-to-reload-current-page-without-losing-any-form-data
+window.onbeforeunload = function() {
+    localStorage.setItem('code', $('#code').val());
+}
+window.onload = function() {
+    let code = localStorage.getItem('code');
+    if(code !== null) $('#code').val(code);
+}
+
 // add line numbers to the textareas
 $(document).ready(function(){
     $('.lined').linedtextarea();
@@ -24,21 +33,7 @@ updateRegisterTable();
 flipButtons('reset', 'restart', 'run', 'step');
 
 // add functionality to all of the buttons
-document.querySelector('#restart').addEventListener('click', restart);
-document.querySelector('#run').addEventListener('click', function() {
-    flipButtons('reset', 'restart', 'run', 'step');
-    let runStatus = run();
-    console.log(runStatus);
-    if(runStatus == 0) flipButtons('reset', 'restart');
-    else               flipButtons('reset', 'restart', 'run', 'step');
-});
-document.querySelector('#step').addEventListener('click', step);
-document.querySelector('#previousMemory').addEventListener('click', previousMemory);
-document.querySelector('#nextMemory').addEventListener('click', nextMemory);
-document.querySelector('#textSegment').addEventListener('click', showTextSegment);
-document.querySelector('#dataSegment').addEventListener('click', showDataSegment);
-document.querySelector('#stackPointer').addEventListener('click', showStack);
-document.querySelector('#globalPointer').addEventListener('click', showGlobal);
+// under code
 document.querySelector('#assemble').addEventListener('click', function() {
     assemble(document.getElementById('code').value);            // assemble the input code
     flipButtons('assemble', 'reset', 'restart', 'run', 'step'); // enable buttons which need assemble to be pressed first
@@ -47,3 +42,19 @@ document.querySelector('#reset').addEventListener('click', function() {
     flipButtons('assemble', 'reset', 'restart', 'run', 'step'); // allow assemble to be pressed, but not buttons which need assemble to be pressed first
     reset()
 });
+document.querySelector('#run').addEventListener('click', function() {
+    flipButtons('reset', 'restart', 'run', 'step');
+    let runStatus = run();
+    console.log(runStatus);
+    if(runStatus == 0) flipButtons('reset', 'restart');
+    else               flipButtons('reset', 'restart', 'run', 'step');
+});
+document.querySelector('#step').addEventListener('click', step);
+document.querySelector('#restart').addEventListener('click', restart);
+// memory navigation
+document.querySelector('#previousMemory').addEventListener('click', previousMemory);
+document.querySelector('#nextMemory').addEventListener('click', nextMemory);
+document.querySelector('#textSegment').addEventListener('click', showTextSegment);
+document.querySelector('#dataSegment').addEventListener('click', showDataSegment);
+document.querySelector('#stackPointer').addEventListener('click', showStack);
+document.querySelector('#globalPointer').addEventListener('click', showGlobal);
