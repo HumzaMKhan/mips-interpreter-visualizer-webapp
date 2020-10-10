@@ -21,8 +21,11 @@ $(document).ready(function(){
 });
 
 // flip the disabled attribute of every button in buttons
-function flipButtons(...buttons) {
-    for(let i = 0, buttonsLength = buttons.length; i < buttonsLength; i++) document.getElementById(buttons[i]).disabled = !document.getElementById(buttons[i]).disabled;
+function disableButtons(...buttons) {
+    for(let i = 0, buttonsLength = buttons.length; i < buttonsLength; i++) document.getElementById(buttons[i]).disabled = true;
+}
+function enableButtons(...buttons) {
+    for(let i = 0, buttonsLength = buttons.length; i < buttonsLength; i++) document.getElementById(buttons[i]).disabled = false;
 }
 
 // initially display memory and registers
@@ -30,27 +33,32 @@ updateMemoryTable();
 updateRegisterTable();
 
 // disable buttons which need other buttons to be pressed first
-flipButtons('reset', 'restart', 'run', 'step');
+disableButtons('reset', 'restart', 'run', 'step');
 
 // add functionality to all of the buttons
 // under code
 document.querySelector('#assemble').addEventListener('click', function() {
-    assemble(document.getElementById('code').value);            // assemble the input code
-    flipButtons('assemble', 'reset', 'restart', 'run', 'step'); // enable buttons which need assemble to be pressed first
+    assemble(document.getElementById('code').value);    // assemble the input code
+    disableButtons('assemble');                         // reset must be pressed to allow reassembly
+    enableButtons('reset', 'restart', 'run', 'step');   // enable buttons which need assemble to be pressed first
 });
 document.querySelector('#reset').addEventListener('click', function() {
-    flipButtons('assemble', 'reset', 'restart', 'run', 'step'); // allow assemble to be pressed, but not buttons which need assemble to be pressed first
+    // enable assemble to be pressed, but not buttons which need assemble to be pressed first
+    disableButtons('reset', 'restart', 'run', 'step');
+    enableButtons('assemble');
     reset()
 });
 document.querySelector('#run').addEventListener('click', function() {
-    flipButtons('reset', 'restart', 'run', 'step');
+    disableButtons('reset', 'restart', 'run', 'step');
     let runStatus = run();
-    console.log(runStatus);
-    if(runStatus == 0) flipButtons('reset', 'restart');
-    else               flipButtons('reset', 'restart', 'run', 'step');
+    if(runStatus == 0) enableButtons('reset', 'restart');
+    else               enableButtons('reset', 'restart', 'run', 'step');
 });
 document.querySelector('#step').addEventListener('click', step);
-document.querySelector('#restart').addEventListener('click', restart);
+document.querySelector('#restart').addEventListener('click', function() {
+    restart();
+    enableButtons('run', 'step');
+});
 // memory navigation
 document.querySelector('#previousMemory').addEventListener('click', previousMemory);
 document.querySelector('#nextMemory').addEventListener('click', nextMemory);
