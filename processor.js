@@ -218,23 +218,37 @@ function runInstruction(instruction) {
     }
 }
 
+function toggleHighlight(...lines) {
+    for(let i = 0, linesLength = lines.length; i < linesLength; i++) {
+        document.getElementsByClassName('lineno').namedItem('line' + lines[i]).classList.toggle('lineselect');
+    }
+}
+
 function assemble(code) {
+    // assemble the code
     preExecutionValues = parseCode(code); // [labels, memory, pcToLine, exitAddress, startAddress]
     if(preExecutionValues == -1) return; // assembly failed
     setOutput('Assembly successful!', 'Press Run to start the program, or step to advance one instruction.');
 
+    // parse the output, store all values, keep preExecutionValues to allow restart
     labels = preExecutionValues[0];
     memory = preExecutionValues[1];
     pcToLine = preExecutionValues[2];
     exitAddress = preExecutionValues[3];
     pc = preExecutionValues[4];
     
+    // reset registers and show the table
     registers.fill(0);
     hilo.fill(0);
     updateRegisterTable();
 
+    // show the data section of memory
     memoryAddress = DATA_START_ADDRESS;
     updateMemoryTable();
+
+    // highlight the first line to be executed
+    lastpc = pc;
+    toggleHighlight(pcToLine[pc]);
 }
 
 function reset() {
@@ -293,24 +307,22 @@ function step() {
     if(pc > TEXT_END_ADDRESS) return runTimeError('Bad pc value:' + '0x' + pc.toString(16).padStart(8, '0') + ', the pc has overrun the text segment boundry.');
     if(pc < TEXT_START_ADDRESS) return runTimeError('Bad pc value:' + '0x' + pc.toString(16).padStart(8, '0') + ', the pc has underrun the text segment boundry.');
 
-    // highlight line number about to be executed
-    if(!(pc in pcToLine)) runTimeError('This pc does not have a corresponding line.');
-    console.log(lastpc);
-    if(lastpc != 0) document.getElementsByClassName('lineno').namedItem('line' + pcToLine[lastpc]).classList.remove('lineselect');
-    document.getElementsByClassName('lineno').namedItem('line' + pcToLine[pc]).classList.add('lineselect');
-    lastpc = pc;
-    
-
     // run instruction
     addOutput('Running instruction at line ' + pcToLine[pc] + ' (0x' + pc.toString(16).padStart(8, '0') + ')');
     let stepReturnCode = runInstruction(memory[pc]);  // -2: breakpoint encountered, -1: runtime error, 0: execution complete, 1: no exceptions
 
     // outputs
-    if(stepReturnCode == 0) addOutput('Execution complete!');
+    if(stepReturnCode == 0) addOutput('Execution complete!', 'Press restart to run again, or reset to clear memory and registers.');
     updateRegisterTable();
     updateMemoryTable();
 
     pc += 4; // move to next instruction
+    
+    // highlight line number about to be executed
+    if(!(pc in pcToLine)) runTimeError('This pc does not have a corresponding line.');
+    toggleHighlight(pcToLine[lastpc]);
+    toggleHighlight(pcToLine[pc]);
+    lastpc = pc;
 
     return stepReturnCode;
 }
