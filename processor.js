@@ -34,7 +34,6 @@ function runTimeError(...args) {
 }
 
 function runInstruction(instruction) {
-    console.log(instruction.toString(2).padStart(32, '0'));
     // set all potential fields
     let funct =     (instruction)        & 0b11_1111;
     let shamt =     (instruction >>> 6)  & 0b1111;
@@ -47,7 +46,6 @@ function runInstruction(instruction) {
     let target =    (instruction)        & 0b11_1111_1111_1111_1111_1111_1111;
     let opcode =    (instruction >>> 26);
     
-    console.log(opcode.toString(2).padStart(6, '0'), rs.toString(2).padStart(5, '0'), rt.toString(2).padStart(5, '0'), signextendimm.toString(2).padStart(16, '0'));
     // R-Type 6op 5rs 5rt 5rd 5shamt 6funct
     if(opcode == 0b000000) {
         switch(FUNCTS[funct]) {
@@ -178,7 +176,6 @@ function runInstruction(instruction) {
                     registers[rt] = registers[rs] + signextendimm;
                     return 1;
                 case 'addiu':   // rt = rs + signextend(imm), no exceptions
-                    console.log(rt, rs, signextendimm, (registers[rs] + signextendimm) & 0xffff_ffff);
                     registers[rt] = (registers[rs] + signextendimm) & 0xffff_ffff;
                     return 1;
                 case 'andi':    // rt = rs & zeroextend(imm), no exceptions
@@ -252,6 +249,7 @@ function assemble(code) {
 }
 
 function reset() {
+    toggleHighlight(pcToLine[pc]);
     memoryAddress = DATA_START_ADDRESS;
     labels = {};
     memory = {};
@@ -269,13 +267,13 @@ function reset() {
 }
 
 function restart() {
+    toggleHighlight(pcToLine[pc]);
     // put values back to what they were at the start of execution
     labels = preExecutionValues[0];
     memory = preExecutionValues[1];
     pcToLine = preExecutionValues[2];
     exitAddress = preExecutionValues[3];
     pc = preExecutionValues[4];
-    lastpc = 0;
 
     registers.fill(0);
     hilo.fill(0);
@@ -283,6 +281,10 @@ function restart() {
 
     memoryAddress = DATA_START_ADDRESS;
     updateMemoryTable();
+
+    // highlight the first line to be executed
+    lastpc = pc;
+    toggleHighlight(pcToLine[pc]);
 
     setOutput('Restart successful!', 'Press Run to start the program, or step to advance one instruction.');
 }
@@ -293,7 +295,7 @@ function run() {
     let stepReturnCode;
     do {
         stepReturnCode = step(); // -2: breakpoint encountered, -1: runtime error, 0: execution complete, 1: no exceptions
-    } while(step());
+    } while(stepReturnCode);
     
     if(stepReturnCode == -2) document.getElementById('output').innerHTML += 'Breakpoint encountered...';
 
@@ -310,12 +312,6 @@ function step() {
     // run instruction
     addOutput('Running instruction at line ' + pcToLine[pc] + ' (0x' + pc.toString(16).padStart(8, '0') + ')');
     let stepReturnCode = runInstruction(memory[pc]);  // -2: breakpoint encountered, -1: runtime error, 0: execution complete, 1: no exceptions
-
-    // outputs
-    if(stepReturnCode == 0) addOutput('Execution complete!', 'Press restart to run again, or reset to clear memory and registers.');
-    updateRegisterTable();
-    updateMemoryTable();
-
     pc += 4; // move to next instruction
     
     // highlight line number about to be executed
@@ -323,7 +319,13 @@ function step() {
     toggleHighlight(pcToLine[lastpc]);
     toggleHighlight(pcToLine[pc]);
     lastpc = pc;
-
+    
+    // outputs
+    if(stepReturnCode == 0) addOutput('Execution complete!', 'Press restart to run again, or reset to clear memory and registers.');
+    updateRegisterTable();
+    updateMemoryTable();
+    
+    console.log(stepReturnCode);
     return stepReturnCode;
 }
 
