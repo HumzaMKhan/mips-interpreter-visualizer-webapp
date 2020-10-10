@@ -20,12 +20,18 @@ function flipButtons(...buttons) {
 updateMemoryTable();
 updateRegisterTable();
 
-// disable buttons which need assemble to be pressed first
+// disable buttons which need other buttons to be pressed first
 flipButtons('reset', 'restart', 'run', 'step');
 
 // add functionality to all of the buttons
 document.querySelector('#restart').addEventListener('click', restart);
-document.querySelector('#run').addEventListener('click', run);
+document.querySelector('#run').addEventListener('click', function() {
+    flipButtons('reset', 'restart', 'run', 'step');
+    let runStatus = run();
+    console.log(runStatus);
+    if(runStatus == 0) flipButtons('reset', 'restart');
+    else               flipButtons('reset', 'restart', 'run', 'step');
+});
 document.querySelector('#step').addEventListener('click', step);
 document.querySelector('#previousMemory').addEventListener('click', previousMemory);
 document.querySelector('#nextMemory').addEventListener('click', nextMemory);
