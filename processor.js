@@ -239,8 +239,7 @@ function assemble(code) {
     hilo.fill(0);
     updateRegisterTable();
 
-    // show the data section of memory
-    memoryAddress = DATA_START_ADDRESS;
+    // show the updated memory table
     updateMemoryTable();
 
     // highlight the first line to be executed
@@ -290,8 +289,6 @@ function restart() {
 }
 
 function run() {
-    setOutput('Running . . .');
-
     let stepReturnCode;
     do {
         stepReturnCode = step(); // -2: breakpoint encountered, -1: runtime error, 0: execution complete, 1: no exceptions
@@ -310,14 +307,14 @@ function step() {
     if(pc < TEXT_START_ADDRESS) return runTimeError('Bad pc value:' + '0x' + pc.toString(16).padStart(8, '0') + ', the pc has underrun the text segment boundry.');
 
     // run instruction
-    addOutput('Running instruction at line ' + pcToLine[pc] + ' (0x' + pc.toString(16).padStart(8, '0') + ')');
+    addOutput('     Running instruction at line ' + pcToLine[pc] + ' (0x' + pc.toString(16).padStart(8, '0') + ')');
     let stepReturnCode = runInstruction(memory[pc]);  // -2: breakpoint encountered, -1: runtime error, 0: execution complete, 1: no exceptions
     pc += 4; // move to next instruction
     
     // highlight line number about to be executed
     if(!(pc in pcToLine)) runTimeError('This pc does not have a corresponding line.');
-    toggleHighlight(pcToLine[lastpc]);
-    toggleHighlight(pcToLine[pc]);
+    toggleHighlight(pcToLine[lastpc]);  // unhighlight last line
+    toggleHighlight(pcToLine[pc]);      // highlight next line
     lastpc = pc;
     
     // outputs
@@ -368,22 +365,26 @@ function showGlobal() {
 }
 
 function updateMemoryTable() {
-    let value, ascii, htmlTable = '', memByte;
+    let value, char, htmlTable = '', memByte;
+    let addresses = ['<th>Address</th>'], decValues = ['<th>Decimal</th>'], hexValues = ['<th>Hex</th>'], charValues = ['<th>UTF-16</th>'];
     for(let i = 0; i < 10; i++) {
         value = 0;
-        ascii = '';
+        char = '';
         for(let j = 3; j >= 0; j--) {
             memByte = memory[memoryAddress + i*4 + j] || 0;
-            if(memByte == 0) ascii += '\\0 ';
-            else if(memByte == 10) ascii += '\\n ';
-            else ascii += ' ' + String.fromCharCode(memByte) + ' ';
+            if(memByte == 0) char += '\\0 ';
+            else if(memByte == 10) char += '\\n ';
+            else char += ' ' + String.fromCharCode(memByte) + ' ';
 
             if(memoryAddress + i*4 + j in memory) value += memByte;
             if(j != 0) value <<= 8;
         }
-        htmlTable += '<tr><td>' + '0x' + (memoryAddress + i*4).toString(16).padStart(8, '0') + '</td><td>'+ value.toString(10) + '</td><td>' + '0x' + value.toString(16).padStart(8, '0') + '</td><td><pre>' + ascii + '</pre></td></tr>';
+        addresses.push('<td>' + '0x' + (memoryAddress + i*4).toString(16).padStart(8, '0') + '</td>');
+        decValues.push('<td>' + value.toString(10) + '</td>');
+        hexValues.push('<td>' + '0x' + value.toString(16).padStart(8, '0') + '</td>');
+        charValues.push('<td><pre>' + char + '</pre></td>');
     }
-    document.getElementById('memoryBody').innerHTML = htmlTable;
+    document.getElementById('memoryBody').innerHTML = '<tr>' + addresses.join('')  + '</tr>' + '<tr>' + decValues.join('')  + '</tr>' + '<tr>' + hexValues.join('')  + '</tr>' + '<tr>' + charValues.join('')  + '</tr>';
 }
 
 function updateRegisterTable() {

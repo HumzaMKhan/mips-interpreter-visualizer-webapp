@@ -50,8 +50,73 @@ convert the .data section to memory addressed information
 this function will return the labels pointing to starting addresses
 errors in this function will be classified as syntax errors
 */
-function dataToMemory(data) {
-    return;
+function dataToMemory(data, startingLine) {
+    let address = DATA_START_ADDRESS;
+    let strings = [];
+    let formatDirective = '.word';
+    let validDirectives = ['.word', '.half', '.byte', '.ascii', '.asciiz'];
+    let labels  = {};
+    let dataMemory = {};
+
+    // remove comments
+    do {
+        let hashtag = data.indexOf('#');
+        if(hashtag != -1) {
+            let nextline = data.slice(hashtag).indexOf('\n');
+            if(nextline != -1) data = data.slice(0, hashtag) + data.slice(nextline + 1);
+            else data = data.slice(0, hashtag);
+        }
+    } while(hashtag != -1);
+
+    // remove strings
+    do {
+        let doubleQuote = data.indexOf('"');
+        if(doubleQuote != -1) {
+            let secondDoubleQuote = data.slice(doubleQuote).indexOf('"');
+            if(secondDoubleQuote == -1) return syntaxError(data.slice(doubleQuote).split('\n').length);
+            strings.push(data.slice(doubleQuote + 1, secondDoubleQuote));
+            data = data.slice(0, doubleQuote + 1) + '.STRING' + data.slice(secondDoubleQuote);
+            console.log(doubleQuote, secondDoubleQuote, strings, data)
+        }
+    } while(doubleQuote != -1);
+
+    // read remaining directives and data
+    let tokens = data.split(' ');
+    for(let i = 0, tokensLength = tokens.length; i < tokensLength; i++) {
+        // skip empty tokens (extra spaces)
+        if(tokens[i] == '') continue;
+        // handle strings, each char is loaded into memory as a byte, .asciiz adds a null terminator at the end
+        if(tokens[i] == '.STRING') {
+            if(formatDirective == '.ascii' || formatDirective == '.asciiz') {
+                let str = strings.shift();
+                for(let i = 0, strLength = str.length; i < strLength; i++) memory[address++] = str.charCodeAt(i);
+            }
+            else return syntaxError(10, 'Strings must be loaded into memory using the .ascii or .asciiz directive!', '.asciiz will null terminate the strings for you');
+            if(formatDirective == '.asciiz') {
+
+            }
+        }
+        // handle labels
+        let colon = data.indexOf(':');
+        if(colon != -1) {
+            let label = tokens[i].slice(0, colon); // get label before colon
+            if(label in labels)                           // duplicate label location error
+                return syntaxError(startingLine + i, 'Two labels cannot have the same name!', label + ': 0x' + (address).toString(16));
+            if(Object.values(labels).includes(address))   // duplicate label error
+                return syntaxError(startingLine + i, 'Two labels cannot resolve to the same memory location!', labels[label] + ': 0x' + (address).toString(16));
+            continue;
+        }
+        // handle directive change
+        let period = data.indexOf('.');
+        if(period != -1) {
+            let directive = tokens[i].slice(period);
+            if(directive in validDirectives) formatDirective = directive;
+            else return syntaxError(startingLine + i, 'This is not a valid directive: ' + tokens[i]);
+            continue;
+        }
+        // all other types of lines
+    }
+    return [labels, dataMemory];
 }
 
 /*
@@ -77,10 +142,10 @@ function textToInstructions(text, startingLine) {
         if(colon != -1) {                   // if a colon exists
             // error checking
             let label = lines[i].slice(0, colon).trim();                    // get label before colon
-            if(TEXT_START_ADDRESS + (i - memoryOffset) * 4 in labels)  // duplicate label location error
-                return syntaxError(startingLine + i, 'Two labels cannot resolve to the same memory location!', labels[TEXT_START_ADDRESS + (i - memoryOffset) * 4] + ': 0x' + (TEXT_START_ADDRESS + (i - memoryOffset) * 4).toString(16), label + ': 0x' + (TEXT_START_ADDRESS + (i - memoryOffset) * 4).toString(16));
-            if(Object.values(labels).includes(label))                   // duplicate label error
+            if(label in labels)  // duplicate label location error
                 return syntaxError(startingLine + i, 'Two labels cannot have the same name!', label + ': 0x' + (TEXT_START_ADDRESS + (i - memoryOffset) * 4).toString(16));
+            if(Object.values(labels).includes(TEXT_START_ADDRESS + (i - memoryOffset) * 4))                   // duplicate label error
+                return syntaxError(startingLine + i, 'Two labels cannot resolve to the same memory location!', labels[TEXT_START_ADDRESS + (i - memoryOffset) * 4] + ': 0x' + (TEXT_START_ADDRESS + (i - memoryOffset) * 4).toString(16), label + ': 0x' + (TEXT_START_ADDRESS + (i - memoryOffset) * 4).toString(16));
 
             // no errors
             labels[TEXT_START_ADDRESS + (i - memoryOffset) * 4] = label;   // add (memory, label) to labels dictionary
