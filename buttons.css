@@ -1,48 +1,42 @@
-.underCode {
-    background-color: salmon;
+button {
+    outline: none;
+    background-color: green;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
     border: none;
     color: white;
-    padding: 18px 55px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 18px;
 }
 
-.underCode:hover {
-    background-color: lightsalmon;
+button:hover {
+    background-color: darkgreen;
 }
 
-#textSegment:hover, #dataSegment:hover, #stackPointer:hover, #globalPointer:hover {
-    background-color: lightsalmon;
+.overCode {
+    padding-left: 2.51em;
+    padding-right: 2.51em;
+    font-size: 18px;
 }
+
 
 #textSegment, #dataSegment, #stackPointer, #globalPointer {
-    background-color: salmon;
-    border: none;
-    color: white;
-    padding: 1px 33px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 18px;
+    padding-left: 4em;
+    padding-right: 4em;
 }
 
 button:disabled, button[disabled] {
   opacity: 50%;
 }
 
-.arrows:hover {
-    background-color: lightsalmon;
+.arrows {
+    padding-left: 6.31em;
+    padding-right: 6.31em;
 }
 
-.arrows {
-    background-color: salmon;
-    border: none;
-    color: white;
-    padding: 18px 95px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 18px;
+.labelsArrows {
+    padding-left: 9.52em;
+    padding-right: 9.52em;
 }

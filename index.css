@@ -1,10 +1,26 @@
 body {
-    background-color: rgb(157, 160, 252);
+    background-color: rgb(230, 230, 255);
+    margin: 0;
 }
 
-.column, .column2 {
+#title {
+    font-size: 45pt;
+    text-align: center;
+    font-family: inherit;
+    color: white;
+    overflow-x: hidden;
+    margin: 0 -9999rem;
+    padding: 0.25rem 9999rem;
+    padding-top: 0.2em;
+    padding-bottom: 0.4em;
+    border: none;
+    border-radius: 0em;
+    background-color: rgb(0, 0, 53);
+}
+
+.column {
     float: left;
-    padding: 30px;
+    padding: 2em;
 }
 
 .clearfix::after {
@@ -14,8 +30,24 @@ body {
 }
 
 textarea {
-    font-size: large;
-    resize: none;
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    outline: none;
     color: white;
     background-color: rgb(41, 41, 41);
+    padding: 0;
+    border: 1px solid #999;
+    margin: 0;
+}
+
+#output {
+    width: 51em;
+    font-size: 14px;
+    font-family: 'Courier New', Courier, monospace;
+    resize: none;
+    padding: 3px;
+}
+
+#code {
+    width: 54em;
 }

@@ -1,32 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <title>MIPS Interpreter and Visualization Tool</title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <link href="jquery-linedtextarea.css" rel="stylesheet">
         <script src="jquery-linedtextarea.js"></script>
+        <script src="jquery-tabSupport.js"></script>
 
         <link rel="stylesheet" href="index.css">
         <link rel="stylesheet" href="buttons.css">
         <link rel="stylesheet" href="tables.css">
     </head>
     <body>
+        <h1 id="title">
+            MIPS Interpreter and Visualization Tool
+        </h1><br><br>
+        <div class="memoryAndNavigation">
+            <button type="button" id="previousMemory" class="arrows">&lt;-</button>
+            <button type="button" id="textSegment">.text</button>
+            <button type="button" id="dataSegment">.data</button>
+            <button type="button" id="stackPointer">$sp</button>
+            <button type="button" id="globalPointer">$gp</button>
+            <button type="button" id="nextMemory"     class="arrows">-&gt;</button>
+            <br>
+            <div id="memoryOutput" style="width: 75.7em; text-align: center; padding: 3px; background-color: rgb(0, 0, 110); color: white; font-family: 'Courier New', Courier, monospace;">Press the buttons to navigate memory!</div>
+            <table id="memory">
+                <caption>MEMORY</caption>
+                <tbody id="memoryBody"></tbody>
+            </table><br>
+        </div>
         <div class="clearfix">
             <div class="column">
-                <h1 id = "codeHeader">Enter Code Here: </h1>
-                <textarea id="code" class="lined tabSupport"
-                    rows="25"
-                    cols="75"
-                    autocomplete="off"
-                    autocorrect="off"
-                    autocapitalize="off"
-                    spellcheck="false"></textarea>
-                <button type="button" id="assemble" class="underCode">Assemble</button>
-                <button type="button" id="reset"    class="underCode">Reset</button>
-                <button type="button" id="run"      class="underCode">Run</button>
-                <button type="button" id="step"     class="underCode">Step</button>
-                <button type="button" id="restart"  class="underCode">Restart</button>
+                <button type="button" id="assemble" class="overCode">Assemble</button>
+                <button type="button" id="reset"    class="overCode">Reset</button>
+                <button type="button" id="run"      class="overCode">Run</button>
+                <button type="button" id="step"     class="overCode">Step</button>
+                <button type="button" id="restart"  class="overCode">Restart</button>
+                <textarea id="code" class="lined tabSupport" rows="25" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
                 <br>
-                <textarea id="output" readonly rows="13" cols="75" style="padding: 30px;font-family: 'Courier New', Courier, monospace;">Press Assemble to begin!</textarea>
+                <textarea id="output" readonly rows="13">Press Assemble to begin!</textarea>
+                <br>
+                <button type="button" id="previousLabels" class="labelsArrows">&lt;-</button>
+                <button type="button" id="nextLabels"     class="labelsArrows">-&gt;</button>    
+                <table id="labels">
+                    <caption>LABELS</caption>
+                    <thead>
+                        <tr>
+                            <th>Label</th><th>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody id="labelsBody"></tbody>
+                </table>
             </div>
             <div class="column">
                 <table id="registerTable">
@@ -37,39 +61,6 @@
                         </tr>
                     </thead>
                     <tbody id="registersBody"></tbody>
-                </table>
-            </div>
-        </div>
-        <hr>
-        <div class="clearfix">
-            <div class="column2">
-                <button type="button" id="textSegment">.text</button>
-                <button type="button" id="dataSegment">.data</button>
-                <button type="button" id="stackPointer">$sp</button>
-                <button type="button" id="globalPointer">$gp</button><br>
-                <button type="button" id="previousMemory" class="arrows">&lt-</button>
-                <button type="button" id="nextMemory"     class="arrows">-&gt</button>
-                <br>
-                <div id="memoryOutput" style="padding: 3px;background-color: black;color: white;font-family: 'Courier New', Courier, monospace;">Press the buttons to navigate memory!</div>
-                <table id="memory">
-                    <caption>MEMORY</caption>
-                    <thead>
-                        <tr>
-                            <th>Address</th><th>Decimal</th><th>Hex</th><th>UTF-16</th>
-                        </tr>
-                    </thead>
-                    <tbody id="memoryBody"></tbody>
-                </table>
-            </div>
-            <div class="column2">
-                <table id="labels">
-                    <caption>LABELS</caption>
-                    <thead>
-                        <tr>
-                            <th>Label</th><th>Address</th>
-                        </tr>
-                    </thead>
-                    <tbody id="labelsBody"></tbody>
                 </table>
             </div>
         </div>

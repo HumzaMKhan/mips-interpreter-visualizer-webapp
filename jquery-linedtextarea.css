@@ -33,7 +33,7 @@
 
 .linedtextarea textarea, .linedwrap .codelines .lineno {
 	font-size: 10pt;
-	font-family: monospace;
+	font-family: 'Courier New', Courier, monospace;
 	line-height: normal !important;
 }
 
@@ -44,8 +44,7 @@
 }
 
 .linedwrap .lines {
-	margin-top: 2px;
-	width: 50px;
+	margin-top: 0px;
 	float: left;
 	overflow: hidden;
 	border-right: 1px solid #c0c0c0;

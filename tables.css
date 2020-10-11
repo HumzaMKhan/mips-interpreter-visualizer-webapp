@@ -1,38 +1,50 @@
 table {
-    border-collapse: collapse;
-  }
-
-table, th, td {
-border: 1px solid black;
+  border-collapse: collapse;
 }
 
 caption {
-    background-color: #066509;
-    color: white;
-    padding-left: 30px;
-    padding-right: 30px;
-    padding-top: 3px;
-    padding-bottom: 3px;
-    font-size: large;
-    font-weight: 800;
+  background-color: rgb(0, 0, 110);
+  color: white;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  font-size: large;
+  font-weight: 800;
 }
 
 td {
-    text-align: center;
-    padding-top: 3px;
-    padding-bottom: 3px;
+  text-align: center;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
 }
 
 th {
-    background-color: #4CAF50;
-    padding-left: 30px;
-    padding-right: 30px;
-    padding-top: 3px;
-    padding-bottom: 3px;
-  }
-
-tr {
-    background-color: rgb(225, 255, 225);
+  background-color: rgb(139, 139, 255);
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 3px;
+  padding-bottom: 3px;
 }
 
-tr:hover {background-color: lightblue;}
+.memoryAndNavigation {
+  padding-left: 30px;
+}
+
+#memory td {
+  padding-right: 0.9em;
+}
+
+#registerTable td {
+  padding-right: 0.8em;
+}
+
+tr {
+  background-color: rgb(212, 212, 255);
+}
+
+tr:hover {background-color: rgb(192, 192, 253);}
+
+#labels caption {
+  width: 36.8em;
+}
