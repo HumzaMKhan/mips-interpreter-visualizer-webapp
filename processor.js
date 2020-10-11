@@ -163,10 +163,20 @@ function runInstruction(instruction) {
     else {
         if(!(opcode in REVERSE_OPS)) {
             switch(REVERSE_RT[rt]) {
-                case 'bltz':    // branch <  0
-                case 'bgez':    // branch >= 0
-                case 'bltzal':  // branch <  0 and link for return
-                case 'bgezal':  // branch >= 0 and link for return
+                case 'bltz':    // branch to pc + 4 + (signextend(imm) << 2) if rs <  0
+                    if(registers[rs] < 0) pc = pc + 4 + (signextendimm << 2);
+                    return 1;
+                case 'bgez':    // branch to pc + 4 + (signextend(imm) << 2) if rs >= 0
+                    if(registers[rs] >= 0) pc = pc + 4 + (signextendimm << 2);
+                    return 1;
+                case 'bltzal':  // branch to pc + 4 + (signextend(imm) << 2) if rs <  0 and link for return
+                    if(registers[rs] < 0) pc = pc + 4 + (signextendimm << 2);
+                    registers[31] = pc + 4;
+                    return 1;
+                case 'bgezal':  // branch to pc + 4 + (signextend(imm) << 2) if rs >= 0 and link for return
+                    if(registers[rs] >= 0) pc = pc + 4 + (signextendimm << 2);
+                    registers[31] = pc + 4;
+                    return 1;
             }
         }
         else {
@@ -188,22 +198,93 @@ function runInstruction(instruction) {
                     registers[rt] = registers[rs] ^ zeroextendimm;
                     return 1;
                 case 'lw':      // rt = mem[rs + signextend(imm)], load 4 bytes, word misalignment will cause an error
+                    if((registers[rs] + signextendimm) % 4 != 0) runTimeError('Misalignment error: ' + '0x' + (registers[rs] + signextendimm).toString(16).padStart(8, '0') + ' is not divisible by 4!');
+                    registers[rt] = memoryAddress[registers[rs] + signextendimm];
+                    return 1;
                 case 'lh':      // rt = mem[rs + signextend(imm)], load 2 bytes, halfword misalignment will cause an error
+                    if     ((registers[rs] + signextendimm) % 2 != 0) runTimeError('Misalignment error: ' + '0x' + (registers[rs] + signextendimm).toString(16).padStart(8, '0') + ' is not divisible by 2!');
+                    if     ((registers[rs] + signextendimm) % 4 == 0) registers[rt] = memoryAddress[registers[rs] + signextendimm] & 0xffff;
+                    else if((registers[rs] + signextendimm) % 4 == 2) registers[rt] = memoryAddress[registers[rs] + signextendimm - 2] >> 16;
+                    return 1;
                 case 'lhu':     // rt = mem[rs + signextend(imm)], load 2 bytes unsigned, halfword misalignment will cause an error
+                    if((registers[rs] + signextendimm) % 2 != 0) runTimeError('Misalignment error: ' + '0x' + (registers[rs] + signextendimm).toString(16).padStart(8, '0') + ' is not divisible by 2!');
+                    if     ((registers[rs] + signextendimm) % 4 == 0) registers[rt] = memoryAddress[registers[rs] + signextendimm] & 0xffff;
+                    else if((registers[rs] + signextendimm) % 4 == 2) registers[rt] = memoryAddress[registers[rs] + signextendimm - 2] >>> 16;
+                    return 1;
                 case 'lb':      // rt = mem[rs + signextend(imm)], load 1 byte, no exceptions
+                    if     ((registers[rs] + signextendimm) % 4 == 0) registers[rt] = memoryAddress[registers[rs] + signextendimm] & 0xff;
+                    else if((registers[rs] + signextendimm) % 4 == 1) registers[rt] = (memoryAddress[registers[rs] + signextendimm - 1] >> 8) & 0xff;
+                    else if((registers[rs] + signextendimm) % 4 == 2) registers[rt] = (memoryAddress[registers[rs] + signextendimm - 2] >> 16) & 0xff;
+                    else if((registers[rs] + signextendimm) % 4 == 3) registers[rt] = (memoryAddress[registers[rs] + signextendimm - 3] >> 24) & 0xff;
+                    return 1;
                 case 'lbu':     // rt = mem[rs + signextend(imm)], load 1 byte unsigned, no exceptions
+                    if     ((registers[rs] + signextendimm) % 4 == 0) registers[rt] = (memoryAddress[registers[rs] + signextendimm] & 0xff) >>> 0;
+                    else if((registers[rs] + signextendimm) % 4 == 1) registers[rt] = ((memoryAddress[registers[rs] + signextendimm - 1] >> 8) & 0xff) >>> 0;
+                    else if((registers[rs] + signextendimm) % 4 == 2) registers[rt] = ((memoryAddress[registers[rs] + signextendimm - 2] >> 16) & 0xff) >>> 0;
+                    else if((registers[rs] + signextendimm) % 4 == 3) registers[rt] = ((memoryAddress[registers[rs] + signextendimm - 3] >> 24) & 0xff) >>> 0;
+                    return 1;
                 case 'lui':     // rt = imm << 16, no exceptions
+                    registers[rt] = imm << 16;
+                    return 1;
                 case 'sw':      // mem[rs + signextend(imm)] = rt, store 4 bytes, word misalignment will cause an error
+                    if((registers[rs] + signextendimm) % 4 != 0) runTimeError('Misalignment error: ' + '0x' + (registers[rs] + signextendimm).toString(16).padStart(8, '0') + ' is not divisible by 4!');
+                    registers[rt] = memoryAddress[registers[rs] + signextendimm];
+                    return 1;
                 case 'sh':      // mem[rs + signextend(imm)] = rt, store 2 bytes, halfword misalignment will cause an error
+                    if(registers[rs] + signextendimm % 2 != 0) runTimeError('Misalignment error: ' + '0x' + (registers[rs] + signextendimm).toString(16).padStart(8, '0') + ' is not divisible by 2!');
+                    if      ((registers[rs] + signextendimm) % 4 == 0) {
+                        memoryAddress[registers[rs] + signextendimm] &= 0xffff_0000;
+                        memoryAddress[registers[rs] + signextendimm] |= (registers[rt] & 0xffff);
+                    }
+                    else if ((registers[rs] + signextendimm) % 4 == 2) {
+                        memoryAddress[registers[rs] + signextendimm - 2] &= 0xffff;
+                        memoryAddress[registers[rs] + signextendimm - 2] |= (registers[rt] << 16);
+                    }
+                    return 1;
                 case 'sb':      // mem[rs + signextend(imm)] = rt, store 1 byte, no exceptions
-                case 'beq':     // branch == 0
-                case 'bne':     // branch != 0
-                case 'bgtz':    // branch >  0
-                case 'bgez':    // branch >= 0
-                case 'bgezal':  // branch >= 0 and link for return
-                case 'bltz':    // branch <  0
-                case 'bltzal':  // branch <  0 and link for return
-                case 'blez':    // branch <= 0
+                    if      ((registers[rs] + signextendimm) % 4 == 0) {
+                        memoryAddress[registers[rs] + signextendimm] &= 0xffff_ff00;
+                        memoryAddress[registers[rs] + signextendimm] |= (registers[rt] & 0xff);
+                    }
+                    else if ((registers[rs] + signextendimm) % 4 == 1) {
+                        memoryAddress[registers[rs] + signextendimm - 1] &= 0xffff_00ff;
+                        memoryAddress[registers[rs] + signextendimm - 1] |= (registers[rt] & 0xff) << 8;
+                    }
+                    else if ((registers[rs] + signextendimm) % 4 == 2) {
+                        memoryAddress[registers[rs] + signextendimm - 2] &= 0xff00_ffff;
+                        memoryAddress[registers[rs] + signextendimm - 2] |= (registers[rt] & 0xff) << 16;
+                    }
+                    else if ((registers[rs] + signextendimm) % 4 == 3) {
+                        memoryAddress[registers[rs] + signextendimm - 3] &= 0xff_ffff;
+                        memoryAddress[registers[rs] + signextendimm - 3] |= (registers[rt] << 24);
+                    }
+                    return 1;
+                case 'beq':     // branch to pc + 4 + (signextend(imm) << 2) if rs == rt
+                    if(registers[rs] == registers[rt]) pc = pc + 4 + (signextendimm << 2);
+                    return 1;
+                case 'bne':     // branch to pc + 4 + (signextend(imm) << 2) if rs != rt
+                    if(registers[rs] != registers[rt]) pc = pc + 4 + (signextendimm << 2);
+                    return 1;
+                case 'bgtz':    // branch to pc + 4 + (signextend(imm) << 2) if rs >  0
+                    if(registers[rs] > 0) pc = pc + 4 + (signextendimm << 2);
+                    return 1;
+                case 'bgez':    // branch to pc + 4 + (signextend(imm) << 2) if rs >= 0
+                    if(registers[rs] >= 0) pc = pc + 4 + (signextendimm << 2);
+                    return 1;
+                case 'bgezal':  // branch to pc + 4 + (signextend(imm) << 2) if rs >= 0 and link for return
+                    if(registers[rs] >= 0) pc = pc + 4 + (signextendimm << 2);
+                    registers[31] = pc + 4;
+                    return 1;
+                case 'bltz':    // branch to pc + 4 + (signextend(imm) << 2) if rs <  0
+                    if(registers[rs] < 0) pc = pc + 4 + (signextendimm << 2);
+                    return 1;
+                case 'bltzal':  // branch to pc + 4 + (signextend(imm) << 2) if rs <  0 and link for return
+                    if(registers[rs] < 0) pc = pc + 4 + (signextendimm << 2);
+                    registers[31] = pc + 4;
+                    return 1;
+                case 'blez':    // branch to pc + 4 + (signextend(imm) << 2) if rs <= 0
+                    if(registers[rs] <= 0) pc = pc + 4 + (signextendimm << 2);
+                    return 1;
                 case 'slti':    // rt = (rs < signextend(imm)) ? 1 : 0, no exceptions
                     registers[rt] = (registers[rs] < signextend(imm)) ? 1 : 0;
                     return 1;
