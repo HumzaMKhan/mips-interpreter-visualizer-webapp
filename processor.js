@@ -38,12 +38,12 @@ function runInstruction(instruction) {
     // set all potential fields
     let funct =     (instruction)        & 0b11_1111;
     let shamt =     (instruction >>> 6)  & 0b1111;
-    let rd =        (instruction >>> 11) & 0b1111;
+    let rd =        (instruction >>> 11) & 0b1_1111;
     let imm =       (instruction)        & 0xffff;
     let signextendimm = ((imm >> 15) & 1 == 1) ? imm | 0xffff0000 : imm >>> 0;
     let zeroextendimm = imm >>> 0;
-    let rt =        (instruction >>> 16) & 0b1111;
-    let rs =        (instruction >>> 21) & 0b1111;
+    let rt =        (instruction >>> 16) & 0b1_1111;
+    let rs =        (instruction >>> 21) & 0b1_1111;
     let target =    (instruction)        & 0b11_1111_1111_1111_1111_1111_1111;
     let opcode =    (instruction >>> 26);
     
