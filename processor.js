@@ -4,7 +4,7 @@ import {TEXT_START_ADDRESS, DATA_START_ADDRESS, FUNCTS, REVERSE_OPS, REVERSE_RT,
 import {parseCode} from './parser.js';
 export {
     updateMemoryTable, updateRegisterTable,
-    previousMemory, nextMemory, showAddress, showTextSegment, showDataSegment, showStack, showGlobal,
+    previousMemory, nextMemory, showTextSegment, showDataSegment, showStack, showGlobal,
     assemble, reset, restart, run, step
 };
 
@@ -408,41 +408,36 @@ function step() {
 }
 
 function previousMemory() {
-    memoryAddress -= 40;
-    updateMemoryTable();
+    setAddress(memoryAddress - 40);
 }
 
 function nextMemory() {
-    memoryAddress += 40;
-    updateMemoryTable();
-}
-
-function showAddress(address) { // ADDRESS WILL LIKELY BE INPUTTED IN HEX, NEED TO CONVERT
-    if(address < 67108864 || address > 2147483648) { // DO SOMETHING TO INDICATE INVALID ADDRESS
-        return -1;
-    }
-    memoryAddress = address;
-    updateMemoryTable();
+    setAddress(memoryAddress + 40);
 }
 
 function showTextSegment() {
-    memoryAddress = TEXT_START_ADDRESS;
-    updateMemoryTable();
+    setAddress(TEXT_START_ADDRESS);
 }
 
 function showDataSegment() {
-    memoryAddress = DATA_START_ADDRESS;
-    updateMemoryTable();
+    setAddress(DATA_START_ADDRESS);
 }
 
 function showStack() {
-    memoryAddress = registers[29] >>> 0;
-    updateMemoryTable();
+    setAddress(registers[29] >>> 0);
 }
 
 function showGlobal() {
-    memoryAddress = registers[28] >>> 0;
-    updateMemoryTable();
+    setAddress(registers[28] >>> 0);
+}
+
+function setAddress(address) {
+    if(address < 0x0400_0000 || address > 0x8000_0000) document.getElementById('memoryOutput').innerHTML = 'Invalid memory request: address out of bounds, address must be in range: [0x04000000, 0x80000000]';
+    else {
+        document.getElementById('memoryOutput').innerHTML = 'Showing address range: [' + address.toString(16).padStart(8, '0') + ', ' + (address + 36).toString(16).padStart(8, '0') + ']';
+        memoryAddress = address;
+        updateMemoryTable();
+    }
 }
 
 function updateMemoryTable() {

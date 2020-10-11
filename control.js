@@ -2,7 +2,7 @@
 
 import {
     updateMemoryTable, updateRegisterTable,
-    previousMemory, nextMemory, showAddress, showTextSegment, showDataSegment, showStack, showGlobal,
+    previousMemory, nextMemory, showTextSegment, showDataSegment, showStack, showGlobal,
     assemble, reset, restart, run, step
 } from './processor.js';
 
