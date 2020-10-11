@@ -54,7 +54,12 @@ document.querySelector('#run').addEventListener('click', function() {
     if(runStatus == 0) enableButtons('reset', 'restart');
     else               enableButtons('reset', 'restart', 'run', 'step');
 });
-document.querySelector('#step').addEventListener('click', step);
+document.querySelector('#step').addEventListener('click', function() {
+    disableButtons('reset', 'restart', 'run', 'step');
+    let stepStatus = step();
+    if(stepStatus == -2 || stepStatus == 1) enableButtons('reset', 'restart', 'run', 'step');
+    else                                    enableButtons('reset', 'restart');
+});
 document.querySelector('#restart').addEventListener('click', function() {
     restart();
     enableButtons('run', 'step');
