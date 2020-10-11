@@ -14,6 +14,7 @@ let memory = {};
 let pcToLine = {};
 let preExecutionValues = {};
 let registers = new Int32Array(32).fill(0);
+registers[29] = 0x7fffeffc;
 let hilo = new Int32Array(2).fill(0);
 let lastpc = 0;
 let pc = TEXT_START_ADDRESS;
@@ -317,6 +318,7 @@ function assemble(code) {
     
     // reset registers and show the table
     registers.fill(0);
+    registers[29] = 0x7fffeffc;
     hilo.fill(0);
     updateRegisterTable();
 
@@ -336,6 +338,7 @@ function reset() {
     pcToLine = {};
     preExecutionValues = {};
     registers.fill(0);
+    registers[29] = 0x7fffeffc;
     hilo.fill(0);
     lastpc = 0;
     pc = TEXT_START_ADDRESS;
@@ -356,6 +359,7 @@ function restart() {
     pc = preExecutionValues[4];
 
     registers.fill(0);
+    registers[29] = 0x7fffeffc;
     hilo.fill(0);
     updateRegisterTable();
 
