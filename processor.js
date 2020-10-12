@@ -75,12 +75,16 @@ function runInstruction(instruction) {
                 hilo[1] = (registers[rs] >>> 0) % (registers[rt] >>> 0);
                 return 1;
             case 'mult':    // {hi, lo} = rs * rt, no exceptions
-                hilo[0] = ((registers[rs] >>> 0) * (registers[rt] >>> 0)) & 0xffff_ffff;
-                hilo[1] = (((registers[rs] >>> 0) * (registers[rt] >>> 0)) >>> 32) & 0xffff_ffff;
+                let product = BigInt(registers[rs] * registers[rt]);
+                hilo[0] = Number(product & BigInt(0xffff_ffff));
+                hilo[1] = Number(product >> BigInt(32));
                 return 1;
             case 'multu':   // {hi, lo} = rs * rt, operands are unsigned, no exceptions
-                hilo[0] = ((registers[rs] >>> 0) * (registers[rt] >>> 0)) & 0xffff_ffff;
-                hilo[1] = (((registers[rs] >>> 0) * (registers[rt] >>> 0)) >>> 32) & 0xffff_ffff;
+                if(registers[rs] < 0) registers[rs] *= -1;
+                if(registers[rt] < 0) registers[rt] *= -1;
+                let Uproduct = BigInt(registers[rs] * registers[rt]);
+                hilo[0] = Number(Uproduct & BigInt(0xffff_ffff));
+                hilo[1] = Number(Uproduct >> BigInt(32));
                 return 1;
             case 'mflo':    // rd = lo, no exceptions
                 registers[rd] = hilo[0];
@@ -311,6 +315,7 @@ function assemble(code) {
 
     // parse the output, store all values, keep preExecutionValues to allow restart
     labels = preExecutionValues[0];
+    updateLabelsTable();
     memory = preExecutionValues[1];
     pcToLine = preExecutionValues[2];
     exitAddress = preExecutionValues[3];
@@ -334,6 +339,7 @@ function reset() {
     toggleHighlight(pcToLine[pc]);
     memoryAddress = DATA_START_ADDRESS;
     labels = {};
+    updateLabelsTable();
     memory = {};
     pcToLine = {};
     preExecutionValues = {};
@@ -353,6 +359,7 @@ function restart() {
     toggleHighlight(pcToLine[pc]);
     // put values back to what they were at the start of execution
     labels = preExecutionValues[0];
+    updateLabelsTable();
     memory = preExecutionValues[1];
     pcToLine = preExecutionValues[2];
     exitAddress = preExecutionValues[3];
@@ -407,7 +414,6 @@ function step() {
     updateRegisterTable();
     updateMemoryTable();
     
-    console.log(stepReturnCode);
     return stepReturnCode;
 }
 
@@ -461,7 +467,7 @@ function updateMemoryTable() {
         }
         addresses.push('<td>' + '0x' + (memoryAddress + i*4).toString(16).padStart(8, '0') + '</td>');
         decValues.push('<td>' + value.toString(10) + '</td>');
-        hexValues.push('<td>' + '0x' + value.toString(16).padStart(8, '0') + '</td>');
+        hexValues.push('<td>' + '0x' + (value >>> 0).toString(16).padStart(8, '0') + '</td>');
         charValues.push('<td><pre>' + char + '</pre></td>');
     }
     document.getElementById('memoryBody').innerHTML = '<tr>' + addresses.join('')  + '</tr>' + '<tr>' + decValues.join('')  + '</tr>' + '<tr>' + hexValues.join('')  + '</tr>' + '<tr>' + charValues.join('')  + '</tr>';
@@ -469,9 +475,18 @@ function updateMemoryTable() {
 
 function updateRegisterTable() {
     let htmlTable = '', firstRowValues = ['$zero', '$at  ', '$v0  ', '$v1  ', '$a0  ', '$a1  ', '$a2  ', '$a3  ', '$t0  ', '$t1  ', '$t2  ', '$t3  ', '$t4  ', '$t5  ', '$t6  ', '$t7  ', '$s0  ', '$s1  ', '$s2  ', '$s3  ', '$s4  ', '$s5  ', '$s6  ', '$s7  ', '$t8  ', '$t9  ', '$k0  ', '$k1  ', '$gp  ', '$sp  ', '$fp  ', '$ra  '];
-    htmlTable += '<tr><td>' + 'pc' + '</td><td>' + 'NA' + '</td><td>' + pc.toString(10) + '</td><td>' + '0x' + pc.toString(16).padStart(8, '0') + '</td></tr>';
-    for(let i = 0; i < 32; i++) htmlTable += '<tr><td>' + firstRowValues[i] + '</td><td>' + '$' + i.toString(10) + '</td><td>' + registers[i].toString(10) + '</td><td>' + '0x' + registers[i].toString(16).padStart(8, '0') + '</td></tr>';
-    htmlTable += '<tr><td>' + 'hi' + '</td><td>' + 'NA' + '</td><td>' + hilo[1].toString(10) + '</td><td>' + '0x' + hilo[1].toString(16).padStart(8, '0') + '</td></tr>';
-    htmlTable += '<tr><td>' + 'lo' + '</td><td>' + 'NA' + '</td><td>' + hilo[0].toString(10) + '</td><td>' + '0x' + hilo[0].toString(16).padStart(8, '0') + '</td></tr>';
+    htmlTable += '<tr><td>' + 'pc' + '</td><td>' + 'NA' + '</td><td>' + pc.toString(10) + '</td><td>' + '0x' + (pc >>> 0).toString(16).padStart(8, '0') + '</td></tr>';
+    for(let i = 0; i < 32; i++) htmlTable += '<tr><td>' + firstRowValues[i] + '</td><td>' + '$' + i.toString(10) + '</td><td>' + registers[i].toString(10) + '</td><td>' + '0x' + (registers[i] >>> 0).toString(16).padStart(8, '0') + '</td></tr>';
+    htmlTable += '<tr><td>' + 'hi' + '</td><td>' + 'NA' + '</td><td>' + hilo[1].toString(10) + '</td><td>' + '0x' + (hilo[1] >>> 0).toString(16).padStart(8, '0') + '</td></tr>';
+    htmlTable += '<tr><td>' + 'lo' + '</td><td>' + 'NA' + '</td><td>' + hilo[0].toString(10) + '</td><td>' + '0x' + (hilo[0] >>> 0).toString(16).padStart(8, '0') + '</td></tr>';
     document.getElementById('registersBody').innerHTML = htmlTable;
+}
+
+function updateLabelsTable() {
+    let htmlTable = '';
+    let entries = Object.entries(labels);
+    for(let i = 0, entriesLength = entries.length; i < entriesLength; i++) {
+        htmlTable += '<tr><td>' + entries[i][1] + '</td><td>' + '0x' + parseInt(entries[i][0], 10).toString(16).padStart(8, '0') + '<td></tr>';
+    }
+    document.getElementById('labelsBody').innerHTML = htmlTable;
 }
